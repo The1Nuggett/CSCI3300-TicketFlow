@@ -6,6 +6,16 @@ const technicianView = document.getElementById("technicianView");
 const viewToggle = document.getElementById("viewToggle");
 const viewTitle = document.getElementById("viewTitle");
 
+function resetTicketsForNewSession() {
+    const sessionKey = "ticketflow-session-started";
+    if (sessionStorage.getItem(sessionKey) === "true") return;
+
+    localStorage.removeItem("tickets");
+    sessionStorage.setItem(sessionKey, "true");
+}
+
+resetTicketsForNewSession();
+
 let tickets = loadTickets();
 let currentView = "user";
 let selectedUserTicketId = tickets[0]?.id ?? null;
