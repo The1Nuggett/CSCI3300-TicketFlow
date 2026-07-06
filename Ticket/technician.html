@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow | Technician Portal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="container">
+        <header class="view-header technician-header">
+            <div>
+                <p class="eyebrow">TicketFlow Support</p>
+                <h1>Technician Ticket Portal</h1>
+                <p class="header-description">Review requests, manage statuses, and communicate with users.</p>
+            </div>
+        </header>
+
+        <section class="card">
+            <h2>Ticket Queue</h2>
+            <p>Select a ticket to review its information, change its status, or post an update.</p>
+            <div id="technicianTicketList"></div>
+        </section>
+    </main>
+
+    <dialog id="closingNoteDialog" class="closing-dialog" aria-labelledby="closingDialogTitle">
+        <form id="closingNoteForm" class="closing-dialog-form">
+            <p class="eyebrow">Close ticket</p>
+            <h2 id="closingDialogTitle">Final resolution note</h2>
+            <p class="dialog-description">
+                Technician closing notes.
+            </p>
+
+            <label for="closingNoteInput">Resolution details</label>
+            <textarea id="closingNoteInput" placeholder="Describe the resolution..." required></textarea>
+            <p id="closingNoteError" class="dialog-error" role="alert" hidden>
+                A final note is required to close the ticket.
+            </p>
+
+            <div class="dialog-actions">
+                <button id="cancelClosingNote" class="secondary-button" type="button">Cancel</button>
+                <button type="submit">Confirm Closure</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="Create.js"></script>
+</body>
+</html>

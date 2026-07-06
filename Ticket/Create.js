@@ -128,6 +128,8 @@ function createTicketDetail(ticket, isTechnician) {
     detail.classList.add("ticket-detail", `priority-${ticket.priority.toLowerCase()}`);
     if (["Closed", "Canceled"].includes(ticket.status)) detail.classList.add("ticket-inactive");
     detail.appendChild(createTicketHeading(ticket));
+    addDetail(detail, "Requester", ticket.requesterName);
+    addDetail(detail, "Email", ticket.requesterEmail);
     addDetail(detail, "Description", ticket.description);
     addDetail(detail, "Category", ticket.category);
     addDetail(detail, "Department", ticket.department);
@@ -170,8 +172,8 @@ function addTechnicianControls(detail, ticket) {
         option.selected = ticket.status === status;
         statusSelect.appendChild(option);
     });
-    statusSelect.addEventListener("change", () => {
-        const updateSucceeded = updateTicketStatus(ticket.id, statusSelect.value);
+    statusSelect.addEventListener("change", async () => {
+        const updateSucceeded = await updateTicketStatus(ticket.id, statusSelect.value);
         if (!updateSucceeded) statusSelect.value = ticket.status;
     });
 
@@ -226,22 +228,66 @@ function displayTechnicianTickets() {
     renderTicketWorkspace(technicianTicketList, selectedTechnicianTicketId, true);
 }
 
-function updateTicketStatus(ticketId, status) {
+function requestClosingNote() {
+    const dialog = document.getElementById("closingNoteDialog");
+    const form = document.getElementById("closingNoteForm");
+    const noteInput = document.getElementById("closingNoteInput");
+    const errorMessage = document.getElementById("closingNoteError");
+    const cancelButton = document.getElementById("cancelClosingNote");
+
+    if (!dialog || !form || !noteInput || !errorMessage || !cancelButton) return Promise.resolve(null);
+
+    noteInput.value = "";
+    errorMessage.hidden = true;
+    dialog.showModal();
+    noteInput.focus();
+
+    return new Promise(resolve => {
+        function finish(value) {
+            form.removeEventListener("submit", handleSubmit);
+            cancelButton.removeEventListener("click", handleCancel);
+            dialog.removeEventListener("cancel", handleDialogCancel);
+            dialog.close();
+            resolve(value);
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            const note = noteInput.value.trim();
+            if (!note) {
+                errorMessage.hidden = false;
+                noteInput.focus();
+                return;
+            }
+            finish(note);
+        }
+
+        function handleCancel() {
+            finish(null);
+        }
+
+        function handleDialogCancel(event) {
+            event.preventDefault();
+            finish(null);
+        }
+
+        form.addEventListener("submit", handleSubmit);
+        cancelButton.addEventListener("click", handleCancel);
+        dialog.addEventListener("cancel", handleDialogCancel);
+    });
+}
+
+async function updateTicketStatus(ticketId, status) {
     const ticket = tickets.find(item => item.id === ticketId);
     if (!ticket) return false;
 
     if (status === "Closed" && ticket.status !== "Closed") {
-        const closingNote = window.prompt(
-            "Before closing this ticket, explain how the issue was resolved and why it is being closed:"
-        );
+        const closingNote = await requestClosingNote();
 
-        if (!closingNote || !closingNote.trim()) {
-            window.alert("A final note is required to close the ticket.");
-            return false;
-        }
+        if (!closingNote) return false;
 
         getTechnicianNotes(ticket).push({
-            text: closingNote.trim(),
+            text: closingNote,
             date: new Date().toISOString(),
             isClosingNote: true
         });
@@ -300,6 +346,8 @@ if (ticketForm) {
         event.preventDefault();
         const ticket = new Ticket(
             generateTicketId(),
+            document.getElementById("requesterName").value.trim(),
+            document.getElementById("requesterEmail").value.trim(),
             document.getElementById("title").value.trim(),
             document.getElementById("description").value.trim(),
             document.getElementById("category").value,

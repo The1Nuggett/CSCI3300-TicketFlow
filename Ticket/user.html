@@ -20,6 +20,16 @@
             <h2>Create Support Ticket</h2>
 
             <form id="ticketForm">
+                <div class="form-field">
+                    <label for="requesterName">Name</label>
+                    <input type="text" id="requesterName" autocomplete="name" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="requesterEmail">Email</label>
+                    <input type="email" id="requesterEmail" autocomplete="email" required>
+                </div>
+
                 <div class="form-field field-wide">
                     <label for="title">Title</label>
                     <input type="text" id="title" required>
@@ -42,13 +52,13 @@
                 </div>
 
                 <div class="form-field">
-                    <label for="department">Department</label>
-                    <input type="text" id="department" required>
+                    <label for="department">Department (Optional)</label>
+                    <input type="text" id="department">
                 </div>
 
                 <div class="form-field">
-                    <label for="priority">Priority</label>
-                    <select id="priority" required>
+                    <label for="priority">Priority (Optional)</label>
+                    <select id="priority">
                         <option value="">Select priority</option>
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
@@ -58,8 +68,8 @@
                 </div>
 
                 <div class="form-field">
-                    <label for="expectedDate">Expected Resolution Date</label>
-                    <input type="date" id="expectedDate" required>
+                    <label for="expectedDate">Expected Resolution Date (Optional)</label>
+                    <input type="date" id="expectedDate">
                 </div>
 
                 <button type="submit">Submit Ticket</button>
