@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Ticket</title>
+    <title>TicketFlow | User Portal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <main class="container">
         <header class="view-header">
             <div>
-                <p class="eyebrow">Temporary role preview</p>
-                <h1 id="viewTitle">User View</h1>
+                <p class="eyebrow">TicketFlow</p>
+                <h1>User Ticket Portal</h1>
+                <p class="header-description">Create requests and follow updates from the support team.</p>
             </div>
-            <button id="viewToggle" class="secondary-button" type="button">Switch to Technician View</button>
         </header>
 
-        <div id="userView">
-            <section class="card">
-            <h1>Create Support Ticket</h1>
+        <section class="card">
+            <h2>Create Support Ticket</h2>
 
             <form id="ticketForm">
                 <div class="form-field field-wide">
@@ -35,11 +33,11 @@
                 <div class="form-field">
                     <label for="category">Category</label>
                     <select id="category" required>
-                    <option value="">Select category</option>
-                    <option value="Hardware">Hardware</option>
-                    <option value="Software">Software</option>
-                    <option value="User Access">User Access</option>
-                    <option value="Network">Network</option>
+                        <option value="">Select category</option>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Software">Software</option>
+                        <option value="User Access">User Access</option>
+                        <option value="Network">Network</option>
                     </select>
                 </div>
 
@@ -51,13 +49,14 @@
                 <div class="form-field">
                     <label for="priority">Priority</label>
                     <select id="priority" required>
-                    <option value="">Select priority</option>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
+                        <option value="">Select priority</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
                     </select>
                 </div>
+
                 <div class="form-field">
                     <label for="expectedDate">Expected Resolution Date</label>
                     <input type="date" id="expectedDate" required>
@@ -65,21 +64,13 @@
 
                 <button type="submit">Submit Ticket</button>
             </form>
-            </section>
+        </section>
 
-            <section class="card">
-                <h2>Created Tickets</h2>
-                <div id="ticketList"></div>
-            </section>
-        </div>
-
-        <div id="technicianView" hidden>
-            <section class="card">
-                <h2>Technician Dashboard</h2>
-                <p>Review tickets, update their status, and add internal notes.</p>
-                <div id="technicianTicketList"></div>
-            </section>
-        </div>
+        <section class="card">
+            <h2>My Tickets</h2>
+            <p>Choose a ticket to see its current status and technician updates.</p>
+            <div id="ticketList"></div>
+        </section>
     </main>
 
     <script src="Ticket.js"></script>

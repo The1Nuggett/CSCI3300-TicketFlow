@@ -1,23 +1,8 @@
 const ticketForm = document.getElementById("ticketForm");
 const ticketList = document.getElementById("ticketList");
 const technicianTicketList = document.getElementById("technicianTicketList");
-const userView = document.getElementById("userView");
-const technicianView = document.getElementById("technicianView");
-const viewToggle = document.getElementById("viewToggle");
-const viewTitle = document.getElementById("viewTitle");
-
-function resetTicketsForNewSession() {
-    const sessionKey = "ticketflow-session-started";
-    if (sessionStorage.getItem(sessionKey) === "true") return;
-
-    localStorage.removeItem("tickets");
-    sessionStorage.setItem(sessionKey, "true");
-}
-
-resetTicketsForNewSession();
 
 let tickets = loadTickets();
-let currentView = "user";
 let selectedUserTicketId = tickets[0]?.id ?? null;
 let selectedTechnicianTicketId = tickets[0]?.id ?? null;
 
@@ -232,10 +217,12 @@ function renderTicketWorkspace(container, selectedId, isTechnician) {
 }
 
 function displayTickets() {
+    if (!ticketList) return;
     renderTicketWorkspace(ticketList, selectedUserTicketId, false);
 }
 
 function displayTechnicianTickets() {
+    if (!technicianTicketList) return;
     renderTicketWorkspace(technicianTicketList, selectedTechnicianTicketId, true);
 }
 
@@ -308,34 +295,26 @@ function saveTechnicianNote(ticketId, note) {
     displayTechnicianTickets();
 }
 
-function toggleView() {
-    currentView = currentView === "user" ? "technician" : "user";
-    const isTechnician = currentView === "technician";
-    userView.hidden = isTechnician;
-    technicianView.hidden = !isTechnician;
-    viewTitle.textContent = isTechnician ? "Technician View" : "User View";
-    viewToggle.textContent = isTechnician ? "Switch to User View" : "Switch to Technician View";
-    if (isTechnician) displayTechnicianTickets();
+if (ticketForm) {
+    ticketForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const ticket = new Ticket(
+            generateTicketId(),
+            document.getElementById("title").value.trim(),
+            document.getElementById("description").value.trim(),
+            document.getElementById("category").value,
+            document.getElementById("department").value.trim(),
+            document.getElementById("priority").value,
+            document.getElementById("expectedDate").value
+        );
+        tickets.push(ticket);
+        selectedUserTicketId = ticket.id;
+        selectedTechnicianTicketId = ticket.id;
+        saveTickets();
+        displayTickets();
+        ticketForm.reset();
+    });
 }
 
-ticketForm.addEventListener("submit", event => {
-    event.preventDefault();
-    const ticket = new Ticket(
-        generateTicketId(),
-        document.getElementById("title").value.trim(),
-        document.getElementById("description").value.trim(),
-        document.getElementById("category").value,
-        document.getElementById("department").value.trim(),
-        document.getElementById("priority").value,
-        document.getElementById("expectedDate").value
-    );
-    tickets.push(ticket);
-    selectedUserTicketId = ticket.id;
-    selectedTechnicianTicketId = ticket.id;
-    saveTickets();
-    displayTickets();
-    ticketForm.reset();
-});
-
-viewToggle.addEventListener("click", toggleView);
 displayTickets();
+displayTechnicianTickets();
