@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow | Sign In</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="theme.js" defer></script>
+</head>
+<body class="auth-page">
+    <main class="login-wrapper">
+        <div class="logo-container">
+            <img src="TicketFlow.png" alt="TicketFlow Logo">
+        </div>
+
+        <section class="login-box">
+            <p class="eyebrow">Welcome back</p>
+            <h1>Sign in to TicketFlow</h1>
+            <p class="auth-description">Use user@company.com for the user portal. Technician and admin portals use prototype credentials.</p>
+
+            <form id="loginForm" class="auth-form">
+                <div class="input-group">
+                    <label for="username">Name</label>
+                    <input type="text" id="username" name="username" placeholder="Name or admin username" autocomplete="name">
+                </div>
+
+                <div class="input-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="loginEmail" placeholder="user@company.com" autocomplete="email">
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Required for admin/technician">
+                </div>
+
+                <p id="loginError" class="dialog-error" role="alert" hidden></p>
+                <button type="submit" class="login-btn">Continue</button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        const loginForm = document.getElementById("loginForm");
+        const loginError = document.getElementById("loginError");
+        const technicianAccounts = {
+            "technician1@company.com": { id: "technician1@company.com", level: 1, label: "Level 1 Technician" },
+            "technician2@company.com": { id: "technician2@company.com", level: 2, label: "Level 2 Technician" },
+            "technician3@company.com": { id: "technician3@company.com", level: 3, label: "Level 3 Technician" }
+        };
+        const userAccountEmail = "user@company.com";
+
+        function getLoginValues() {
+            return {
+                name: document.getElementById("username").value.trim(),
+                email: document.getElementById("loginEmail").value.trim().toLowerCase(),
+                password: document.getElementById("password").value
+            };
+        }
+
+        function showLoginError(message) {
+            loginError.textContent = message;
+            loginError.hidden = false;
+        }
+
+        function clearLoginError() {
+            loginError.textContent = "";
+            loginError.hidden = true;
+        }
+
+        loginForm.addEventListener("submit", event => {
+            event.preventDefault();
+            clearLoginError();
+            const { name, email, password } = getLoginValues();
+            localStorage.setItem("ticketflow_user", name || "User");
+            localStorage.setItem("ticketflow_email", email);
+
+            if (name.toLowerCase() === "admin") {
+                if (password !== "admin") {
+                    showLoginError("Admin login requires username admin and password admin.");
+                    return;
+                }
+                localStorage.setItem("ticketflow_role", "admin");
+                window.location.href = "admin.html";
+                return;
+            }
+
+            if (technicianAccounts[email]) {
+                const account = technicianAccounts[email];
+                if (password !== "1234") {
+                    showLoginError("Technician login requires password 1234.");
+                    return;
+                }
+                localStorage.setItem("ticketflow_role", "technician");
+                localStorage.setItem("ticketflow_technician_id", account.id);
+                localStorage.setItem("ticketflow_technician_name", name || account.label);
+                localStorage.setItem("ticketflow_technician_level", String(account.level));
+                localStorage.setItem("ticketflow_technician_label", account.label);
+                window.location.href = "technician.html";
+                return;
+            }
+
+            if (email !== userAccountEmail) {
+                showLoginError("User login requires user@company.com. Technician accounts use technician1-3@company.com.");
+                return;
+            }
+
+            localStorage.setItem("ticketflow_role", "user");
+            localStorage.setItem("ticketflow_user", name || "User");
+            localStorage.setItem("ticketflow_email", userAccountEmail);
+            window.location.href = "portal.html";
+        });
+    </script>
+</body>
+</html>

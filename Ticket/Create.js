@@ -1,12 +1,28 @@
 const ticketForm = document.getElementById("ticketForm");
 const ticketList = document.getElementById("ticketList");
 const technicianTicketList = document.getElementById("technicianTicketList");
+const myTechnicianTicketList = document.getElementById("myTechnicianTicketList");
+const adminOpenTicketList = document.getElementById("adminOpenTicketList");
+const adminClosedTicketList = document.getElementById("adminClosedTicketList");
+const adminTechnicianBoard = document.getElementById("adminTechnicianBoard");
 const portalRole = document.body.dataset.portal || "user";
-const currentTechnician = document.body.dataset.technician || null;
+const technicianAccounts = {
+    "technician1@company.com": { level: 1, label: "Level 1 Technician" },
+    "technician2@company.com": { level: 2, label: "Level 2 Technician" },
+    "technician3@company.com": { level: 3, label: "Level 3 Technician" }
+};
+const currentTechnician = localStorage.getItem("ticketflow_technician_id") || "technician1@company.com";
+const currentTechnicianName = localStorage.getItem("ticketflow_technician_name") || technicianAccounts[currentTechnician]?.label || currentTechnician;
+const currentTechnicianLevel = Number(localStorage.getItem("ticketflow_technician_level") || technicianAccounts[currentTechnician]?.level || 1);
 
 let tickets = loadTickets();
 let selectedUserTicketId = tickets[0]?.id ?? null;
 let selectedTechnicianTicketId = tickets[0]?.id ?? null;
+let selectedMyTechnicianTicketId = tickets.find(ticket => ticket.assignedTechnician === currentTechnician)?.id ?? null;
+let selectedAdminOpenTicketId = tickets.find(ticket => isActiveTicket(ticket))?.id ?? null;
+let selectedAdminClosedTicketId = tickets.find(ticket => !isActiveTicket(ticket))?.id ?? null;
+let selectedAdminTechnicianId = "technician1@company.com";
+let selectedAdminTicketId = tickets.find(ticket => ticket.assignedTechnician === selectedAdminTechnicianId)?.id ?? null;
 
 function loadTickets() {
     try {
@@ -14,6 +30,7 @@ function loadTickets() {
         return savedTickets.map(ticket => {
             if (ticket.status === "In Progress") ticket.status = "Open";
             if (ticket.status === "Resolved") ticket.status = "Closed";
+            normalizeTicketRouting(ticket);
             return ticket;
         });
     } catch (error) {
@@ -22,12 +39,88 @@ function loadTickets() {
     }
 }
 
+function isActiveTicket(ticket) {
+    return !["Closed", "Canceled"].includes(ticket.status);
+}
+
+function getPriorityScore(ticket) {
+    const priorityScores = {
+        Critical: 1,
+        High: 2,
+        Medium: 3,
+        Low: 4
+    };
+
+    let score = priorityScores[ticket.priority] || 3;
+    const department = String(ticket.department || "").toLowerCase();
+    const category = String(ticket.category || "").toLowerCase();
+    const description = String(ticket.description || "").toLowerCase();
+    const isDistributionOrDc = department.includes("distribution")
+        || department.includes("dc")
+        || category.includes("distribution")
+        || category.includes("dc")
+        || description.includes("distribution center");
+    const isFloorOperations = department.includes("floor")
+        || description.includes("floor operation");
+
+    if (isDistributionOrDc && isFloorOperations) score -= 0.5;
+    return Math.max(1, score);
+}
+
+function getRequiredLevel(ticket) {
+    const score = ticket.priorityScore ?? getPriorityScore(ticket);
+    if (score <= 1.5) return 3;
+    if (score <= 2.5) return 2;
+    return 1;
+}
+
+function normalizeTicketRouting(ticket) {
+    ticket.priorityScore = ticket.priorityScore ?? getPriorityScore(ticket);
+    ticket.requiredLevel = ticket.requiredLevel ?? getRequiredLevel(ticket);
+    autoAssignTicket(ticket);
+
+    if (ticket.assignedTechnician && !ticket.assignedTechnicianName) {
+        ticket.assignedTechnicianName = technicianAccounts[ticket.assignedTechnician]?.label || ticket.assignedTechnician;
+    }
+}
+
+function getTechnicianIdByLevel(level) {
+    return Object.keys(technicianAccounts).find(technicianId => technicianAccounts[technicianId].level === level) || "technician1@company.com";
+}
+
+function autoAssignTicket(ticket) {
+    if (ticket.assignedTechnician) return;
+
+    const technicianId = getTechnicianIdByLevel(ticket.requiredLevel || getRequiredLevel(ticket));
+    ticket.assignedTechnician = technicianId;
+    ticket.assignedTechnicianName = technicianAccounts[technicianId]?.label || technicianId;
+}
+
+function getTechnicianDisplayName(technicianId) {
+    if (!technicianId) return "Unassigned";
+    if (technicianId === currentTechnician) return currentTechnicianName || technicianId;
+    return technicianAccounts[technicianId]?.label || technicianId;
+}
+
 function generateTicketId() {
     return tickets.length === 0 ? 1001 : Math.max(...tickets.map(ticket => ticket.id)) + 1;
 }
 
 function saveTickets() {
     localStorage.setItem("tickets", JSON.stringify(tickets));
+}
+
+function updateTechnicianPageCopy() {
+    const headerDescription = document.getElementById("technicianHeaderDescription");
+    const myDeckDescription = document.getElementById("myDeckDescription");
+
+    if (headerDescription) {
+        headerDescription.textContent = `Signed in as ${currentTechnicianName} (${technicianAccounts[currentTechnician]?.label || `Level ${currentTechnicianLevel}`}). Tickets are routed to your deck automatically.`;
+    }
+
+    if (myDeckDescription) {
+        myDeckDescription.textContent = `Tickets assigned to ${currentTechnicianName}. Other technicians cannot view them unless they are escalated or reassigned by admin.`;
+    }
 }
 
 function formatDate(date) {
@@ -109,11 +202,14 @@ function createTicketListItem(ticket, selectedId, onSelect) {
     topLine.classList.add("ticket-list-topline");
     const number = document.createElement("strong");
     number.textContent = `#${ticket.id}`;
+    const meta = document.createElement("span");
+    meta.classList.add("ticket-list-meta");
+    meta.textContent = `L${ticket.requiredLevel || getRequiredLevel(ticket)} • ${ticket.priority || "No priority"}`;
     const status = document.createElement("span");
     status.classList.add("status-pill");
     status.classList.add(`status-${ticket.status.toLowerCase()}`);
     status.textContent = ticket.status;
-    topLine.append(number, status);
+    topLine.append(number, meta, status);
 
     const title = document.createElement("span");
     title.classList.add("ticket-list-title");
@@ -127,7 +223,8 @@ function createTicketListItem(ticket, selectedId, onSelect) {
 
 function createTicketDetail(ticket, isTechnician) {
     const detail = document.createElement("article");
-    detail.classList.add("ticket-detail", `priority-${ticket.priority.toLowerCase()}`);
+    const priorityClass = ticket.priority ? `priority-${ticket.priority.toLowerCase()}` : "priority-unset";
+    detail.classList.add("ticket-detail", priorityClass);
     if (["Closed", "Canceled"].includes(ticket.status)) detail.classList.add("ticket-inactive");
     detail.appendChild(createTicketHeading(ticket));
     addDetail(detail, "Requester", ticket.requesterName);
@@ -136,8 +233,10 @@ function createTicketDetail(ticket, isTechnician) {
     addDetail(detail, "Category", ticket.category);
     addDetail(detail, "Department", ticket.department);
     addDetail(detail, "Priority", ticket.priority);
+    addDetail(detail, "Priority Score", ticket.priorityScore ? `P${ticket.priorityScore}` : "Not calculated");
+    addDetail(detail, "Required Technician Level", ticket.requiredLevel ? `Level ${ticket.requiredLevel}` : "Not routed");
     addDetail(detail, "Status", ticket.status);
-    addDetail(detail, "Assigned To", ticket.assignedTechnician || "Unassigned");
+    addDetail(detail, "Assigned To", ticket.assignedTechnicianName || getTechnicianDisplayName(ticket.assignedTechnician));
     addDetail(detail, "Created", formatDate(ticket.createdDate));
     addDetail(detail, "Expected Resolution", formatDate(ticket.expectedDate));
     if (ticket.closedDate) addDetail(detail, "Closed", formatDate(ticket.closedDate));
@@ -173,21 +272,12 @@ function addTechnicianControls(detail, ticket) {
 
     if (portalRole === "admin") {
         assignmentButton.textContent = ticket.assignedTechnician
-            ? `Reassign ${ticket.assignedTechnician}`
+            ? `Reassign ${ticket.assignedTechnicianName || getTechnicianDisplayName(ticket.assignedTechnician)}`
             : "Assign Technician";
         assignmentButton.addEventListener("click", () => assignTechnician(ticket.id, "assign"));
-    } else if (!ticket.assignedTechnician) {
-        assignmentButton.textContent = "Assign to Me";
-        assignmentButton.addEventListener("click", () => claimTicket(ticket.id));
     } else {
         assignmentButton.textContent = "Escalate Ticket";
         assignmentButton.addEventListener("click", () => assignTechnician(ticket.id, "escalate"));
-    }
-
-    if (portalRole === "technician" && !ticket.assignedTechnician) {
-        controls.append(assignmentLabel, assignmentButton);
-        detail.appendChild(controls);
-        return;
     }
 
     const statusLabel = document.createElement("label");
@@ -225,7 +315,7 @@ function addTechnicianControls(detail, ticket) {
     detail.appendChild(controls);
 }
 
-function renderTicketWorkspace(container, selectedId, isTechnician, ticketCollection = tickets) {
+function renderTicketWorkspace(container, selectedId, isTechnician, ticketCollection = tickets, onTicketSelect) {
     container.replaceChildren();
     if (ticketCollection.length === 0) {
         const message = document.createElement("p");
@@ -244,9 +334,10 @@ function renderTicketWorkspace(container, selectedId, isTechnician, ticketCollec
 
     ticketCollection.forEach(ticket => {
         list.appendChild(createTicketListItem(ticket, selectedTicket.id, () => {
-            if (isTechnician) selectedTechnicianTicketId = ticket.id;
+            if (onTicketSelect) onTicketSelect(ticket.id);
+            else if (isTechnician) selectedTechnicianTicketId = ticket.id;
             else selectedUserTicketId = ticket.id;
-            renderTicketWorkspace(container, ticket.id, isTechnician, ticketCollection);
+            renderTicketWorkspace(container, ticket.id, isTechnician, ticketCollection, onTicketSelect);
         }));
     });
 
@@ -259,12 +350,143 @@ function displayTickets() {
     renderTicketWorkspace(ticketList, selectedUserTicketId, false);
 }
 
+function createAdminTechnicianButton(technicianId) {
+    const account = technicianAccounts[technicianId];
+    const assignedTickets = tickets.filter(ticket => ticket.assignedTechnician === technicianId);
+    const activeCount = assignedTickets.filter(isActiveTicket).length;
+    const closedCount = assignedTickets.length - activeCount;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.classList.add("admin-technician-item");
+    if (technicianId === selectedAdminTechnicianId) button.classList.add("selected");
+    button.innerHTML = `
+        <span>
+            <strong>${account.label}</strong>
+            <small>${technicianId}</small>
+        </span>
+        <span class="admin-tech-counts">
+            <span>${activeCount} active</span>
+            <span>${closedCount} closed</span>
+        </span>
+    `;
+    button.addEventListener("click", () => {
+        selectedAdminTechnicianId = technicianId;
+        selectedAdminTicketId = tickets.find(ticket => ticket.assignedTechnician === technicianId)?.id ?? null;
+        renderAdminTechnicianBoard();
+    });
+    return button;
+}
+
+function renderAdminTechnicianBoard() {
+    if (!adminTechnicianBoard) return;
+
+    adminTechnicianBoard.replaceChildren();
+
+    const board = document.createElement("div");
+    board.classList.add("admin-technician-board");
+
+    const technicianPanel = document.createElement("nav");
+    technicianPanel.classList.add("admin-technician-panel");
+    technicianPanel.setAttribute("aria-label", "Technicians");
+    Object.keys(technicianAccounts).forEach(technicianId => {
+        technicianPanel.appendChild(createAdminTechnicianButton(technicianId));
+    });
+
+    const assignedTickets = tickets.filter(ticket => ticket.assignedTechnician === selectedAdminTechnicianId);
+    const selectedTicket = assignedTickets.find(ticket => ticket.id === selectedAdminTicketId) || assignedTickets[0];
+    selectedAdminTicketId = selectedTicket?.id ?? null;
+
+    const ticketPanel = document.createElement("nav");
+    ticketPanel.classList.add("ticket-list-panel", "admin-ticket-panel");
+    ticketPanel.setAttribute("aria-label", "Assigned tickets");
+
+    if (assignedTickets.length === 0) {
+        const empty = document.createElement("p");
+        empty.classList.add("empty-state");
+        empty.textContent = "No tickets assigned to this technician.";
+        ticketPanel.appendChild(empty);
+    } else {
+        assignedTickets.forEach(ticket => {
+            ticketPanel.appendChild(createTicketListItem(ticket, selectedAdminTicketId, () => {
+                selectedAdminTicketId = ticket.id;
+                renderAdminTechnicianBoard();
+            }));
+        });
+    }
+
+    const detailPanel = selectedTicket
+        ? createTicketDetail(selectedTicket, true)
+        : document.createElement("article");
+
+    if (!selectedTicket) {
+        detailPanel.classList.add("ticket-detail");
+        const title = document.createElement("h3");
+        title.textContent = "No ticket selected";
+        const copy = document.createElement("p");
+        copy.textContent = "Choose a technician with assigned tickets to view details.";
+        detailPanel.append(title, copy);
+    }
+
+    board.append(technicianPanel, ticketPanel, detailPanel);
+    adminTechnicianBoard.appendChild(board);
+}
+
 function displayTechnicianTickets() {
-    if (!technicianTicketList) return;
-    const visibleTickets = portalRole === "admin"
-        ? tickets
-        : tickets.filter(ticket => !ticket.assignedTechnician || ticket.assignedTechnician === currentTechnician);
-    renderTicketWorkspace(technicianTicketList, selectedTechnicianTicketId, true, visibleTickets);
+    if (portalRole === "admin") {
+        if (adminTechnicianBoard) {
+            renderAdminTechnicianBoard();
+            return;
+        }
+
+        if (adminOpenTicketList) {
+            const openTickets = tickets.filter(isActiveTicket);
+            renderTicketWorkspace(
+                adminOpenTicketList,
+                selectedAdminOpenTicketId,
+                true,
+                openTickets,
+                ticketId => {
+                    selectedAdminOpenTicketId = ticketId;
+                }
+            );
+        }
+
+        if (adminClosedTicketList) {
+            const closedTickets = tickets.filter(ticket => !isActiveTicket(ticket));
+            renderTicketWorkspace(
+                adminClosedTicketList,
+                selectedAdminClosedTicketId,
+                true,
+                closedTickets,
+                ticketId => {
+                    selectedAdminClosedTicketId = ticketId;
+                }
+            );
+        }
+
+        if (!adminOpenTicketList && !adminClosedTicketList && technicianTicketList) {
+            renderTicketWorkspace(technicianTicketList, selectedTechnicianTicketId, true, tickets);
+        }
+        return;
+    }
+
+    const myTickets = tickets.filter(ticket => ticket.assignedTechnician === currentTechnician);
+
+    if (myTechnicianTicketList) {
+        renderTicketWorkspace(
+            myTechnicianTicketList,
+            selectedMyTechnicianTicketId,
+            true,
+            myTickets,
+            ticketId => {
+                selectedMyTechnicianTicketId = ticketId;
+            }
+        );
+    }
+
+    if (!myTechnicianTicketList && technicianTicketList) {
+        renderTicketWorkspace(technicianTicketList, selectedTechnicianTicketId, true, myTickets);
+    }
 }
 
 function requestClosingNote() {
@@ -337,7 +559,8 @@ function requestTechnicianAssignment(currentAssignment, mode) {
     confirmButton.textContent = isEscalation ? "Escalate Ticket" : "Assign Technician";
 
     form.querySelectorAll('input[name="assignedTechnician"]').forEach(option => {
-        const unavailable = isEscalation && option.value === currentTechnician;
+        const optionLevel = Number(option.dataset.level || 0);
+        const unavailable = isEscalation && (option.value === currentTechnician || optionLevel <= currentTechnicianLevel);
         option.disabled = unavailable;
         option.closest("label").hidden = unavailable;
     });
@@ -381,21 +604,6 @@ function requestTechnicianAssignment(currentAssignment, mode) {
     });
 }
 
-function claimTicket(ticketId) {
-    const ticket = tickets.find(item => item.id === ticketId);
-    if (!ticket || ticket.assignedTechnician) return;
-
-    ticket.assignedTechnician = currentTechnician;
-    ticket.activityLog = ticket.activityLog || [];
-    ticket.activityLog.push({
-        date: new Date().toISOString(),
-        message: `Ticket claimed by ${currentTechnician}.`
-    });
-    saveTickets();
-    displayTickets();
-    displayTechnicianTickets();
-}
-
 async function assignTechnician(ticketId, mode) {
     const ticket = tickets.find(item => item.id === ticketId);
     if (!ticket) return;
@@ -405,12 +613,14 @@ async function assignTechnician(ticketId, mode) {
     if (!technician) return;
 
     ticket.assignedTechnician = technician;
+    ticket.assignedTechnicianName = technicianAccounts[technician]?.label || technician;
+    ticket.requiredLevel = Math.max(ticket.requiredLevel || 1, technicianAccounts[technician]?.level || 1);
     ticket.activityLog = ticket.activityLog || [];
     ticket.activityLog.push({
         date: new Date().toISOString(),
         message: mode === "escalate"
-            ? `Ticket escalated from ${previousTechnician} to ${technician}.`
-            : `Ticket assigned to ${technician}.`
+            ? `Ticket escalated from ${getTechnicianDisplayName(previousTechnician)} to ${getTechnicianDisplayName(technician)}.`
+            : `Ticket assigned to ${getTechnicianDisplayName(technician)}.`
     });
     saveTickets();
     displayTickets();
@@ -495,14 +705,23 @@ if (ticketForm) {
             document.getElementById("priority").value,
             document.getElementById("expectedDate").value
         );
+        autoAssignTicket(ticket);
+        ticket.activityLog = ticket.activityLog || [];
+        ticket.activityLog.push({
+            date: new Date().toISOString(),
+            message: `Ticket automatically routed to ${ticket.assignedTechnicianName}.`
+        });
         tickets.push(ticket);
         selectedUserTicketId = ticket.id;
         selectedTechnicianTicketId = ticket.id;
         saveTickets();
         displayTickets();
         ticketForm.reset();
+        const redirectTarget = document.body.dataset.afterSubmit;
+        if (redirectTarget) window.location.href = redirectTarget;
     });
 }
 
 displayTickets();
+updateTechnicianPageCopy();
 displayTechnicianTickets();

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow | Ticket Detail</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="theme.js" defer></script>
+</head>
+<body class="portal-page">
+    <a href="portal.html" class="dashboard-back-arrow" aria-label="Back to ticket dashboard">←</a>
+    <main class="dashboard-wrapper">
+        <div class="logo-container">
+            <img src="TicketFlow.png" alt="TicketFlow Banner" class="top-logo">
+        </div>
+
+        <section id="ticketDetailBox" class="form-box detail-page-box"></section>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const ticketId = Number(params.get("id"));
+        const tickets = JSON.parse(localStorage.getItem("tickets")) || [];
+        const ticket = tickets.find(item => Number(item.id) === ticketId);
+        const detailBox = document.getElementById("ticketDetailBox");
+
+        function formatDate(date) {
+            if (!date) return "Not set";
+            const dateObj = new Date(date);
+            return Number.isNaN(dateObj.getTime()) ? date : dateObj.toLocaleString();
+        }
+
+        function escapeHtml(value) {
+            return String(value || "Not provided")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function renderNotes(notes = []) {
+            if (!Array.isArray(notes) || notes.length === 0) {
+                return '<p class="empty-state-light">No technician updates yet.</p>';
+            }
+
+            return notes.map(note => `
+                <div class="detail-value note-preview">
+                    <strong>${note.isClosingNote ? "Final closing note" : "Technician note"}</strong>
+                    <p>${escapeHtml(note.text)}</p>
+                    <small>${formatDate(note.date)}</small>
+                </div>
+            `).join("");
+        }
+
+        function renderActivity(activityLog = []) {
+            if (!Array.isArray(activityLog) || activityLog.length === 0) {
+                return '<p class="empty-state-light">No activity recorded yet.</p>';
+            }
+
+            return activityLog.map(activity => `
+                <li><span>${formatDate(activity.date)}</span>${escapeHtml(activity.message)}</li>
+            `).join("");
+        }
+
+        if (!ticket) {
+            detailBox.innerHTML = `
+                <h1>Ticket not found</h1>
+                <p class="auth-description">This ticket may have been removed or the link may be incorrect.</p>
+                <a href="portal.html" class="submit-btn">Back to Portal</a>
+            `;
+        } else {
+            const isClosed = ticket.status === "Closed" || ticket.status === "Canceled";
+            detailBox.innerHTML = `
+                <p class="eyebrow">Ticket #${ticket.id}</p>
+                <h1>${escapeHtml(ticket.title)}</h1>
+
+                <div class="detail-row">
+                    <span class="detail-label">Requester</span>
+                    <div class="detail-value">${escapeHtml(ticket.requesterName)}</div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Email</span>
+                    <div class="detail-value">${escapeHtml(ticket.requesterEmail)}</div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Status</span>
+                    <div class="detail-value">${escapeHtml(ticket.status)}</div>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Description</span>
+                    <div class="detail-value preserve-lines">${escapeHtml(ticket.description)}</div>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label">Category</span>
+                        <div class="detail-value">${escapeHtml(ticket.category)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Department</span>
+                        <div class="detail-value">${escapeHtml(ticket.department)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Priority</span>
+                        <div class="detail-value">${escapeHtml(ticket.priority)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Assigned Technician</span>
+                        <div class="detail-value">${escapeHtml(ticket.assignedTechnician || "Unassigned")}</div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Created</span>
+                        <div class="detail-value">${formatDate(ticket.createdDate)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Expected Resolution</span>
+                        <div class="detail-value">${formatDate(ticket.expectedDate)}</div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Closed</span>
+                        <div class="detail-value">${formatDate(ticket.closedDate)}</div>
+                    </div>
+                </div>
+
+                <h2>Technician Updates</h2>
+                ${renderNotes(ticket.notes)}
+
+                <h2>Activity History</h2>
+                <ul class="activity-list">${renderActivity(ticket.activityLog)}</ul>
+
+                <div class="btn-group">
+                    <a href="portal.html" class="submit-btn btn-back">Back to Portal</a>
+                    ${isClosed ? "" : '<button id="cancelTicketBtn" class="submit-btn btn-close">Cancel Ticket</button>'}
+                </div>
+            `;
+
+            const cancelButton = document.getElementById("cancelTicketBtn");
+            if (cancelButton) {
+                cancelButton.addEventListener("click", () => {
+                    if (!confirm("Are you sure you want to cancel this ticket?")) return;
+                    ticket.status = "Canceled";
+                    ticket.activityLog = ticket.activityLog || [];
+                    ticket.activityLog.push({
+                        date: new Date().toISOString(),
+                        message: "Ticket canceled by user."
+                    });
+                    localStorage.setItem("tickets", JSON.stringify(tickets));
+                    window.location.href = "portal.html";
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow | New Ticket</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="theme.js" defer></script>
+</head>
+<body class="portal-page" data-after-submit="portal.html">
+    <a href="portal.html" class="dashboard-back-arrow" aria-label="Back to ticket dashboard">←</a>
+    <main class="dashboard-wrapper">
+        <div class="logo-container">
+            <img src="TicketFlow.png" alt="TicketFlow Banner" class="top-logo">
+        </div>
+
+        <section class="form-box">
+            <p class="eyebrow">New request</p>
+            <h1>Create Support Ticket</h1>
+            <p class="auth-description">Required fields: name, email, title, description, and category.</p>
+
+            <form id="ticketForm" class="stacked-form">
+                <div class="input-group">
+                    <label for="requesterName">Name</label>
+                    <input type="text" id="requesterName" autocomplete="name" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="requesterEmail">Email</label>
+                    <input type="email" id="requesterEmail" autocomplete="email" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="title">Subject</label>
+                    <input type="text" id="title" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="description">Issue</label>
+                    <textarea id="description" rows="4" required></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label for="category">Category</label>
+                    <select id="category" required>
+                        <option value="">Select category...</option>
+                        <option value="Hardware">Hardware</option>
+                        <option value="Software">Software</option>
+                        <option value="User Access">User Access</option>
+                        <option value="Network">Network</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="department">Department / Area</label>
+                    <input type="text" id="department" placeholder="Optional">
+                </div>
+
+                <div class="input-group">
+                    <label for="priority">Priority</label>
+                    <select id="priority">
+                        <option value="">Select priority...</option>
+                        <option value="Critical">P1 - Critical</option>
+                        <option value="High">P2 - High</option>
+                        <option value="Medium">P3 - Medium</option>
+                        <option value="Low">P4 - Low</option>
+                    </select>
+                    <p id="priority-example" class="example-text"></p>
+                </div>
+
+                <div class="input-group">
+                    <label for="expectedDate">Expected Resolution Date</label>
+                    <input type="date" id="expectedDate">
+                </div>
+
+                <button type="submit" class="submit-btn">Submit Ticket</button>
+                <a href="portal.html" class="subtle-link">Back to portal</a>
+            </form>
+        </section>
+    </main>
+
+    <script src="Ticket.js"></script>
+    <script src="Create.js"></script>
+    <script>
+        document.getElementById("requesterName").value = localStorage.getItem("ticketflow_user") || "";
+        document.getElementById("requesterEmail").value = localStorage.getItem("ticketflow_email") || "";
+
+        const priorityDropdown = document.getElementById("priority");
+        const priorityExample = document.getElementById("priority-example");
+
+        priorityDropdown.addEventListener("change", function() {
+            const examples = {
+                Critical: "Example: Business-critical operations are halted.",
+                High: "Example: Significant impact to multiple users or departments.",
+                Medium: "Example: Password reset or common access issue.",
+                Low: "Example: Software install request or minor issue."
+            };
+            priorityExample.textContent = examples[this.value] || "";
+        });
+    </script>
+</body>
+</html>

@@ -5,21 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TicketFlow | Admin Portal</title>
     <link rel="stylesheet" href="style.css">
+    <script src="theme.js" defer></script>
 </head>
 <body data-portal="admin">
     <main class="container">
         <header class="view-header admin-header">
-            <div>
+            <div class="banner-copy">
                 <p class="eyebrow">TicketFlow Administration</p>
                 <h1>Admin Ticket Portal</h1>
                 <p class="header-description">View every request and assign tickets to any technician.</p>
             </div>
+            <img src="TicketFlow.png" alt="TicketFlow Logo" class="banner-logo">
         </header>
 
         <section class="card">
-            <h2>Ticket Queue</h2>
-            <p>Select a ticket to review its information, change its status, or post an update.</p>
-            <div id="technicianTicketList"></div>
+            <h2>Technician Ticket Overview</h2>
+            <p>Select a technician to view their assigned tickets, then choose a ticket to open the full details.</p>
+            <div id="adminTechnicianBoard"></div>
         </section>
     </main>
 
@@ -32,20 +34,16 @@
             <fieldset class="technician-options">
                 <legend>Available technicians</legend>
                 <label class="technician-option">
-                    <input type="radio" name="assignedTechnician" value="Technician 1">
-                    <span><strong>Technician 1</strong><small>Support technician</small></span>
+                    <input type="radio" name="assignedTechnician" value="technician1@company.com" data-level="1" data-label="Level 1 Technician">
+                    <span><strong>Level 1 Technician</strong><small>technician1@company.com</small></span>
                 </label>
                 <label class="technician-option">
-                    <input type="radio" name="assignedTechnician" value="Technician 2">
-                    <span><strong>Technician 2</strong><small>Support technician</small></span>
+                    <input type="radio" name="assignedTechnician" value="technician2@company.com" data-level="2" data-label="Level 2 Technician">
+                    <span><strong>Level 2 Technician</strong><small>technician2@company.com</small></span>
                 </label>
                 <label class="technician-option">
-                    <input type="radio" name="assignedTechnician" value="Technician 3">
-                    <span><strong>Technician 3</strong><small>Support technician</small></span>
-                </label>
-                <label class="technician-option">
-                    <input type="radio" name="assignedTechnician" value="Technician 4">
-                    <span><strong>Technician 4</strong><small>Support technician</small></span>
+                    <input type="radio" name="assignedTechnician" value="technician3@company.com" data-level="3" data-label="Level 3 Technician">
+                    <span><strong>Level 3 Technician</strong><small>technician3@company.com</small></span>
                 </label>
             </fieldset>
 

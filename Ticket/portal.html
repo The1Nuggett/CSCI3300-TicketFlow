@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow | User Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="theme.js" defer></script>
+</head>
+<body class="portal-page">
+    <div class="user-bar">
+        Dashboard for: <span id="logged-in-user" class="highlight-text">Guest</span>
+    </div>
+
+    <main class="dashboard-wrapper">
+        <div class="logo-container">
+            <img src="TicketFlow.png" alt="TicketFlow Banner" class="top-logo">
+        </div>
+
+        <section class="portal-box">
+            <h2>Open Tickets</h2>
+            <div id="open-tickets-list" class="ticket-list"></div>
+        </section>
+
+        <section class="portal-box">
+            <h2>Closed Tickets</h2>
+            <div id="closed-tickets-list" class="ticket-list"></div>
+        </section>
+
+        <div class="action-container">
+            <a href="newticket.html" class="submit-btn">Create New Ticket</a>
+            <a href="index.html" class="subtle-link">Switch portal</a>
+        </div>
+    </main>
+
+    <script>
+        const savedUser = localStorage.getItem("ticketflow_user") || "User";
+        const savedEmail = localStorage.getItem("ticketflow_email") || "";
+        document.getElementById("logged-in-user").textContent = savedEmail || savedUser;
+
+        const openContainer = document.getElementById("open-tickets-list");
+        const closedContainer = document.getElementById("closed-tickets-list");
+        const tickets = JSON.parse(localStorage.getItem("tickets")) || [];
+        const userTickets = tickets.filter(ticket => {
+            if (savedEmail && ticket.requesterEmail) return ticket.requesterEmail.toLowerCase() === savedEmail.toLowerCase();
+            return ticket.requesterName === savedUser || ticket.username === savedUser;
+        });
+
+        function formatDate(date) {
+            if (!date) return "Unknown Date";
+            const dateObj = new Date(date);
+            return Number.isNaN(dateObj.getTime()) ? "Unknown Date" : dateObj.toLocaleDateString();
+        }
+
+        function renderEmptyState() {
+            openContainer.innerHTML = '<p class="empty-state-light">No open tickets found.</p>';
+            closedContainer.innerHTML = '<p class="empty-state-light">No closed tickets found.</p>';
+        }
+
+        function createTicketItem(ticket) {
+            const isClosed = ticket.status === "Closed" || ticket.status === "Canceled";
+            const statusClass = isClosed ? "status-closed" : "status-open";
+            const itemClass = isClosed ? "ticket-item inactive" : "ticket-item";
+            const closedText = isClosed && ticket.closedDate
+                ? ` &bull; Closed: ${formatDate(ticket.closedDate)}`
+                : "";
+
+            return `
+                <a href="ticketdetail.html?id=${ticket.id}" class="ticket-link">
+                    <div class="${itemClass}">
+                        <div class="ticket-info">
+                            <span class="ticket-id">#${ticket.id} &bull; ${formatDate(ticket.createdDate)}${closedText}</span>
+                            <span class="ticket-title">${ticket.title}</span>
+                        </div>
+                        <span class="status-badge ${statusClass}">${ticket.status}</span>
+                    </div>
+                </a>
+            `;
+        }
+
+        openContainer.innerHTML = "";
+        closedContainer.innerHTML = "";
+
+        if (userTickets.length === 0) {
+            renderEmptyState();
+        } else {
+            userTickets.forEach(ticket => {
+                const isClosed = ticket.status === "Closed" || ticket.status === "Canceled";
+                if (isClosed) closedContainer.innerHTML += createTicketItem(ticket);
+                else openContainer.innerHTML += createTicketItem(ticket);
+            });
+
+            if (!openContainer.innerHTML) openContainer.innerHTML = '<p class="empty-state-light">No open tickets found.</p>';
+            if (!closedContainer.innerHTML) closedContainer.innerHTML = '<p class="empty-state-light">No closed tickets found.</p>';
+        }
+    </script>
+</body>
+</html>
