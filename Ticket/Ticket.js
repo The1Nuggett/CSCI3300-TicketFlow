@@ -15,6 +15,7 @@ class Ticket {
 
         this.createdDate = new Date();
         this.closedDate = null;
+        this.assignedTechnician = null;
 
         this.technicianNotes = "";
         this.notes = [];

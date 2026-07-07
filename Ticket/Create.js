@@ -1,6 +1,8 @@
 const ticketForm = document.getElementById("ticketForm");
 const ticketList = document.getElementById("ticketList");
 const technicianTicketList = document.getElementById("technicianTicketList");
+const portalRole = document.body.dataset.portal || "user";
+const currentTechnician = document.body.dataset.technician || null;
 
 let tickets = loadTickets();
 let selectedUserTicketId = tickets[0]?.id ?? null;
@@ -135,6 +137,7 @@ function createTicketDetail(ticket, isTechnician) {
     addDetail(detail, "Department", ticket.department);
     addDetail(detail, "Priority", ticket.priority);
     addDetail(detail, "Status", ticket.status);
+    addDetail(detail, "Assigned To", ticket.assignedTechnician || "Unassigned");
     addDetail(detail, "Created", formatDate(ticket.createdDate));
     addDetail(detail, "Expected Resolution", formatDate(ticket.expectedDate));
     if (ticket.closedDate) addDetail(detail, "Closed", formatDate(ticket.closedDate));
@@ -162,6 +165,31 @@ function addUserControls(detail, ticket) {
 function addTechnicianControls(detail, ticket) {
     const controls = document.createElement("div");
     controls.classList.add("technician-controls");
+    const assignmentLabel = document.createElement("label");
+    assignmentLabel.textContent = "Assignment";
+    const assignmentButton = document.createElement("button");
+    assignmentButton.type = "button";
+    assignmentButton.classList.add("secondary-button", "assignment-button");
+
+    if (portalRole === "admin") {
+        assignmentButton.textContent = ticket.assignedTechnician
+            ? `Reassign ${ticket.assignedTechnician}`
+            : "Assign Technician";
+        assignmentButton.addEventListener("click", () => assignTechnician(ticket.id, "assign"));
+    } else if (!ticket.assignedTechnician) {
+        assignmentButton.textContent = "Assign to Me";
+        assignmentButton.addEventListener("click", () => claimTicket(ticket.id));
+    } else {
+        assignmentButton.textContent = "Escalate Ticket";
+        assignmentButton.addEventListener("click", () => assignTechnician(ticket.id, "escalate"));
+    }
+
+    if (portalRole === "technician" && !ticket.assignedTechnician) {
+        controls.append(assignmentLabel, assignmentButton);
+        detail.appendChild(controls);
+        return;
+    }
+
     const statusLabel = document.createElement("label");
     statusLabel.textContent = "Status";
     const statusSelect = document.createElement("select");
@@ -185,13 +213,21 @@ function addTechnicianControls(detail, ticket) {
     saveNoteButton.type = "button";
     saveNoteButton.textContent = "Save Note";
     saveNoteButton.addEventListener("click", () => saveTechnicianNote(ticket.id, noteInput.value));
-    controls.append(statusLabel, statusSelect, noteLabel, noteInput, saveNoteButton);
+    controls.append(
+        assignmentLabel,
+        assignmentButton,
+        statusLabel,
+        statusSelect,
+        noteLabel,
+        noteInput,
+        saveNoteButton
+    );
     detail.appendChild(controls);
 }
 
-function renderTicketWorkspace(container, selectedId, isTechnician) {
+function renderTicketWorkspace(container, selectedId, isTechnician, ticketCollection = tickets) {
     container.replaceChildren();
-    if (tickets.length === 0) {
+    if (ticketCollection.length === 0) {
         const message = document.createElement("p");
         message.classList.add("empty-state");
         message.textContent = isTechnician ? "No tickets are waiting for review." : "No tickets created yet.";
@@ -199,18 +235,18 @@ function renderTicketWorkspace(container, selectedId, isTechnician) {
         return;
     }
 
-    const selectedTicket = tickets.find(ticket => ticket.id === selectedId) || tickets[0];
+    const selectedTicket = ticketCollection.find(ticket => ticket.id === selectedId) || ticketCollection[0];
     const workspace = document.createElement("div");
     workspace.classList.add("ticket-workspace");
     const list = document.createElement("nav");
     list.classList.add("ticket-list-panel");
     list.setAttribute("aria-label", "Tickets");
 
-    tickets.forEach(ticket => {
+    ticketCollection.forEach(ticket => {
         list.appendChild(createTicketListItem(ticket, selectedTicket.id, () => {
             if (isTechnician) selectedTechnicianTicketId = ticket.id;
             else selectedUserTicketId = ticket.id;
-            renderTicketWorkspace(container, ticket.id, isTechnician);
+            renderTicketWorkspace(container, ticket.id, isTechnician, ticketCollection);
         }));
     });
 
@@ -225,7 +261,10 @@ function displayTickets() {
 
 function displayTechnicianTickets() {
     if (!technicianTicketList) return;
-    renderTicketWorkspace(technicianTicketList, selectedTechnicianTicketId, true);
+    const visibleTickets = portalRole === "admin"
+        ? tickets
+        : tickets.filter(ticket => !ticket.assignedTechnician || ticket.assignedTechnician === currentTechnician);
+    renderTicketWorkspace(technicianTicketList, selectedTechnicianTicketId, true, visibleTickets);
 }
 
 function requestClosingNote() {
@@ -275,6 +314,107 @@ function requestClosingNote() {
         cancelButton.addEventListener("click", handleCancel);
         dialog.addEventListener("cancel", handleDialogCancel);
     });
+}
+
+function requestTechnicianAssignment(currentAssignment, mode) {
+    const dialog = document.getElementById("assignmentDialog");
+    const form = document.getElementById("assignmentForm");
+    const errorMessage = document.getElementById("assignmentError");
+    const cancelButton = document.getElementById("cancelAssignment");
+    const title = document.getElementById("assignmentDialogTitle");
+    const description = document.getElementById("assignmentDialogDescription");
+    const confirmButton = document.getElementById("confirmAssignment");
+
+    if (!dialog || !form || !errorMessage || !cancelButton) return Promise.resolve(null);
+
+    form.reset();
+    errorMessage.hidden = true;
+    const isEscalation = mode === "escalate";
+    title.textContent = isEscalation ? "Escalate ticket" : "Assign a technician";
+    description.textContent = isEscalation
+        ? "Choose another technician to take over. You will no longer see this ticket in your queue."
+        : "Choose who will be responsible for this ticket.";
+    confirmButton.textContent = isEscalation ? "Escalate Ticket" : "Assign Technician";
+
+    form.querySelectorAll('input[name="assignedTechnician"]').forEach(option => {
+        const unavailable = isEscalation && option.value === currentTechnician;
+        option.disabled = unavailable;
+        option.closest("label").hidden = unavailable;
+    });
+    const currentOption = form.querySelector(
+        `input[name="assignedTechnician"][value="${currentAssignment || ""}"]`
+    );
+    if (currentOption) currentOption.checked = true;
+    dialog.showModal();
+
+    return new Promise(resolve => {
+        function finish(value) {
+            form.removeEventListener("submit", handleSubmit);
+            cancelButton.removeEventListener("click", handleCancel);
+            dialog.removeEventListener("cancel", handleDialogCancel);
+            dialog.close();
+            resolve(value);
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            const selected = form.querySelector('input[name="assignedTechnician"]:checked');
+            if (!selected) {
+                errorMessage.hidden = false;
+                return;
+            }
+            finish(selected.value);
+        }
+
+        function handleCancel() {
+            finish(null);
+        }
+
+        function handleDialogCancel(event) {
+            event.preventDefault();
+            finish(null);
+        }
+
+        form.addEventListener("submit", handleSubmit);
+        cancelButton.addEventListener("click", handleCancel);
+        dialog.addEventListener("cancel", handleDialogCancel);
+    });
+}
+
+function claimTicket(ticketId) {
+    const ticket = tickets.find(item => item.id === ticketId);
+    if (!ticket || ticket.assignedTechnician) return;
+
+    ticket.assignedTechnician = currentTechnician;
+    ticket.activityLog = ticket.activityLog || [];
+    ticket.activityLog.push({
+        date: new Date().toISOString(),
+        message: `Ticket claimed by ${currentTechnician}.`
+    });
+    saveTickets();
+    displayTickets();
+    displayTechnicianTickets();
+}
+
+async function assignTechnician(ticketId, mode) {
+    const ticket = tickets.find(item => item.id === ticketId);
+    if (!ticket) return;
+
+    const previousTechnician = ticket.assignedTechnician;
+    const technician = await requestTechnicianAssignment(previousTechnician, mode);
+    if (!technician) return;
+
+    ticket.assignedTechnician = technician;
+    ticket.activityLog = ticket.activityLog || [];
+    ticket.activityLog.push({
+        date: new Date().toISOString(),
+        message: mode === "escalate"
+            ? `Ticket escalated from ${previousTechnician} to ${technician}.`
+            : `Ticket assigned to ${technician}.`
+    });
+    saveTickets();
+    displayTickets();
+    displayTechnicianTickets();
 }
 
 async function updateTicketStatus(ticketId, status) {

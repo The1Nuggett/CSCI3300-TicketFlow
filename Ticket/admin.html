@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TicketFlow | Technician Portal</title>
+    <title>TicketFlow | Admin Portal</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body data-portal="technician" data-technician="Technician 1">
+<body data-portal="admin">
     <main class="container">
-        <header class="view-header technician-header">
+        <header class="view-header admin-header">
             <div>
-                <p class="eyebrow">TicketFlow Support</p>
-                <h1>Technician Ticket Portal</h1>
-                <p class="header-description">Signed in as Technician 1. Claim requests or escalate them to another technician.</p>
+                <p class="eyebrow">TicketFlow Administration</p>
+                <h1>Admin Ticket Portal</h1>
+                <p class="header-description">View every request and assign tickets to any technician.</p>
             </div>
         </header>
 
@@ -26,8 +26,8 @@
     <dialog id="assignmentDialog" class="assignment-dialog" aria-labelledby="assignmentDialogTitle">
         <form id="assignmentForm" class="assignment-dialog-form">
             <p class="eyebrow">Ticket assignment</p>
-            <h2 id="assignmentDialogTitle">Escalate ticket</h2>
-            <p id="assignmentDialogDescription" class="dialog-description">Choose the technician who should take over this ticket.</p>
+            <h2 id="assignmentDialogTitle">Assign a technician</h2>
+            <p id="assignmentDialogDescription" class="dialog-description">Choose who will be responsible for this ticket.</p>
 
             <fieldset class="technician-options">
                 <legend>Available technicians</legend>
@@ -55,7 +55,7 @@
 
             <div class="dialog-actions">
                 <button id="cancelAssignment" class="secondary-button" type="button">Cancel</button>
-                <button id="confirmAssignment" type="submit">Escalate Ticket</button>
+                <button id="confirmAssignment" type="submit">Assign Technician</button>
             </div>
         </form>
     </dialog>

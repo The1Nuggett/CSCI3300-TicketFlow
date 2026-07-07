@@ -67,6 +67,10 @@ body {
     text-transform: uppercase;
 }
 
+.admin-header {
+    border-color: rgba(244, 71, 71, 0.35);
+}
+
 .card {
     margin-bottom: 24px;
     padding: clamp(20px, 4vw, 30px);
@@ -479,6 +483,91 @@ select:focus-visible {
 
 .dialog-actions button {
     margin-top: 0;
+}
+
+.assignment-button {
+    justify-self: start;
+    margin-top: 0;
+}
+
+.assignment-dialog {
+    width: min(560px, calc(100% - 32px));
+    padding: 0;
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius-large);
+    background: var(--surface-raised);
+    color: var(--text);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.65);
+}
+
+.assignment-dialog::backdrop {
+    background: rgba(5, 7, 10, 0.78);
+    backdrop-filter: blur(5px);
+}
+
+.assignment-dialog-form {
+    display: block;
+    margin: 0;
+    padding: 28px;
+}
+
+.assignment-dialog h2 {
+    margin: 2px 0 8px;
+    color: #ffffff;
+    font-size: 1.5rem;
+}
+
+.technician-options {
+    display: grid;
+    gap: 9px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.technician-options legend {
+    margin-bottom: 9px;
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.technician-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-soft);
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease;
+}
+
+.technician-option:hover {
+    border-color: var(--border-bright);
+    background: #3a3d41;
+}
+
+.technician-option:has(input:checked) {
+    border-color: var(--primary);
+    background: rgba(0, 122, 204, 0.12);
+}
+
+.technician-option input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--primary);
+}
+
+.technician-option span {
+    display: grid;
+    gap: 1px;
+}
+
+.technician-option small {
+    color: var(--text-muted);
 }
 
 [hidden] {
