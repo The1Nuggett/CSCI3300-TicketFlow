@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow - New Ticket</title>
+    <link rel="stylesheet" href="newticket.css">
+</head>
+<body>
+
+    <div class="dashboard-wrapper">
+        
+        <div class="logo-container">
+            <img src="TicketFlow.png" alt="TicketFlow Logo" class="top-logo">
+        </div>
+
+        <div class="form-box">
+            
+            <form id="ticketForm">
+                
+                <div class="input-group">
+                    <label for="title">Subject</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="description">Issue</label>
+                    <textarea id="description" name="description" rows="4" required></textarea>
+                </div>
+
+                <div class="input-group">
+                    <select id="category" name="category" required>
+                        <option value="" disabled selected>Select Location...</option>
+                        <option value="Offices">Offices</option>
+                        <option value="Distribution">Distribution</option>
+                        <option value="Retail">Retail</option>
+                    </select>
+                </div>
+
+                <div class="input-group" id="sub-location-group" style="display: none;">
+                    <select id="department" name="department">
+                        <option value="" disabled selected>Select Area...</option>
+                        <option value="Floor">Floor</option>
+                        <option value="Offices">Offices</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <select id="priority" name="priority" required>
+                        <option value="" disabled selected>Select Priority...</option>
+                        <option value="P1">P1 - Critical (no work can be done)</option>
+                        <option value="P2">P2 - High (some work can be done)</option>
+                        <option value="P3">P3 - Medium</option>
+                        <option value="P4">P4 - Low</option>
+                    </select>
+                    <p id="priority-example" class="example-text"></p>
+                </div>
+
+                <div class="input-group">
+                    <label for="expectedDate">Expected Resolution Date</label>
+                    <input type="date" id="expectedDate" name="expectedDate" required>
+                </div>
+
+                <button type="submit" class="submit-btn">Submit Ticket</button>
+
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Handle Location Logic
+        const locationDropdown = document.getElementById('category');
+        const subLocationGroup = document.getElementById('sub-location-group');
+
+        locationDropdown.addEventListener('change', function() {
+            if (this.value === 'Distribution') {
+                subLocationGroup.style.display = 'block'; 
+            } else {
+                subLocationGroup.style.display = 'none';  
+            }
+        });
+
+        // Handle Priority Logic
+        const priorityDropdown = document.getElementById('priority');
+        const priorityExample = document.getElementById('priority-example');
+
+        priorityDropdown.addEventListener('change', function() {
+            switch(this.value) {
+                case 'P1':
+                    priorityExample.innerText = "Example: Business-critical operations are halted";
+                    break;
+                case 'P2':
+                    priorityExample.innerText = "Example: Significantly impacting multiple users or departments";
+                    break;
+                case 'P3':
+                    priorityExample.innerText = "Example: Password Resets";
+                    break;
+                case 'P4':
+                    priorityExample.innerText = "Example: Software installation requests or white-listing sites request";
+                    break;
+                default:
+                    priorityExample.innerText = "";
+            }
+        });
+    </script>
+    
+    <script src="Ticket.js"></script>
+    <script src="Create.js"></script>
+
+ <script>
+        document.getElementById('ticketForm').addEventListener('submit', function(e) {
+            // Give Create.js a split second to save the data
+            setTimeout(() => {
+                const currentUser = localStorage.getItem('ticketflow_user') || "Guest";
+                let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
+                
+                // Tag the most recently created ticket (the last one in the array) with the username
+                if (tickets.length > 0) {
+                    tickets[tickets.length - 1].username = currentUser;
+                    localStorage.setItem('tickets', JSON.stringify(tickets));
+                }
+                
+                window.location.href = 'portal.html';
+            }, 100);
+        });
+    </script>
+
+</body>
+</html>

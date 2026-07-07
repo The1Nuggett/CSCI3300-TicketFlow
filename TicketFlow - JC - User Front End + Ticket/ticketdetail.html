@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow - View Ticket</title>
+    <link rel="stylesheet" href="newticket.css">
+    <style>
+        .detail-row { margin-bottom: 15px; font-size: 15px; color: #333; line-height: 1.5; }
+        .detail-label { font-weight: 600; color: #555; display: block; font-size: 13px; margin-bottom: 4px; }
+        .detail-value { background-color: #f9f9f9; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; }
+        
+        .btn-group { display: flex; gap: 15px; margin-top: 30px; }
+        .btn-close { background-color: #d9534f; color: white; border: none; padding: 14px; width: 100%; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.3s ease;}
+        .btn-close:hover { background-color: #c9302c; }
+        .btn-back { background-color: #eeeeee; color: #333; text-decoration: none; text-align: center; padding: 14px; width: 100%; border-radius: 4px; font-size: 16px; font-weight: 600; transition: background-color 0.3s ease; }
+        .btn-back:hover { background-color: #dddddd; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-wrapper">
+        <div class="logo-container">
+            <img src="TicketFlow.png" alt="TicketFlow Banner" class="top-logo">
+        </div>
+
+        <div class="form-box">
+            <h1 style="margin-bottom: 25px; color: #333; font-size: 22px;">Ticket #<span id="display-id"></span></h1>
+            
+            <div class="detail-row">
+                <span class="detail-label">Subject</span>
+                <div class="detail-value" id="display-title"></div>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Date Submitted</span>
+                <div class="detail-value" id="display-date"></div>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <div class="detail-value" id="display-status" style="font-weight: bold;"></div>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Issue Details</span>
+                <div class="detail-value" id="display-desc" style="white-space: pre-wrap;"></div>
+            </div>
+
+            <div class="btn-group">
+                <a href="portal.html" class="submit-btn btn-back">Back to Portal</a>
+                <button id="closeTicketBtn" class="submit-btn btn-close">Close Ticket</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const ticketId = parseInt(params.get('id'));
+
+        let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
+        
+        const ticket = tickets.find(t => t.id === ticketId);
+
+        if (ticket) {
+            document.getElementById('display-id').innerText = ticket.id;
+            document.getElementById('display-title').innerText = ticket.title;
+            document.getElementById('display-status').innerText = ticket.status;
+            document.getElementById('display-desc').innerText = ticket.description;
+
+            const dateObj = new Date(ticket.createdDate);
+            const formattedDate = isNaN(dateObj) ? "Unknown Date" : dateObj.toLocaleDateString();
+            document.getElementById('display-date').innerText = formattedDate;
+
+            const closeBtn = document.getElementById('closeTicketBtn');
+            if (ticket.status === 'Closed' || ticket.status === 'Canceled') {
+                closeBtn.style.display = 'none';
+            } else {
+                closeBtn.addEventListener('click', function() {
+                    if (confirm("Are you sure you want to close this ticket?")) {
+                        ticket.status = 'Closed';
+                        ticket.closedDate = new Date().toISOString(); 
+                        
+                        // NEW: Save the logged-in user as the closer
+                        ticket.closedBy = localStorage.getItem('ticketflow_user') || "User";
+                        
+                        localStorage.setItem('tickets', JSON.stringify(tickets));
+                        window.location.href = 'portal.html';
+                    }
+                });
+            }
+        } else {
+            document.querySelector('.form-box').innerHTML = '<h2>Ticket not found.</h2><a href="portal.html" class="submit-btn btn-back" style="margin-top:20px; display:block;">Go Back</a>';
+        }
+    </script>
+
+</body>
+</html>

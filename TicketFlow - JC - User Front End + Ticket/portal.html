@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow - User Portal</title>
+    <link rel="stylesheet" href="portal.css">
+    <style>
+        .ticket-link { text-decoration: none; color: inherit; display: block; }
+    </style>
+</head>
+<body>
+
+    <div class="user-bar">
+        Dashboard for: <span id="logged-in-user" class="highlight-text">Guest</span>
+    </div>
+
+    <div class="dashboard-wrapper">
+        <div class="logo-container">
+            <img src="TicketFlow.png" alt="TicketFlow Banner" class="top-logo">
+        </div>
+
+        <div class="portal-box">
+            <h2>Open Tickets</h2>
+            <div id="open-tickets-list" class="ticket-list"></div>
+        </div>
+
+        <div class="portal-box">
+            <h2>Closed Tickets</h2>
+            <div id="closed-tickets-list" class="ticket-list"></div>
+        </div>
+
+        <div class="action-container">
+            <a href="newticket.html" class="submit-btn">Create New Ticket</a>
+        </div>
+    </div>
+
+    <script>
+        const savedUser = localStorage.getItem('ticketflow_user') || "User";
+        document.getElementById('logged-in-user').innerText = savedUser;
+
+        const openContainer = document.getElementById('open-tickets-list');
+        const closedContainer = document.getElementById('closed-tickets-list');
+        
+        let allTickets = [];
+        try {
+            allTickets = JSON.parse(localStorage.getItem('tickets')) || [];
+        } catch (e) {
+            console.error("Could not load tickets.", e);
+        }
+
+        const userTickets = allTickets.filter(ticket => ticket.username === savedUser);
+
+        openContainer.innerHTML = '';
+        closedContainer.innerHTML = '';
+
+        if (userTickets.length === 0) {
+            openContainer.innerHTML = '<p style="font-size: 14px; color: #888;">No open tickets found.</p>';
+            closedContainer.innerHTML = '<p style="font-size: 14px; color: #888;">No closed tickets found.</p>';
+        }
+
+        userTickets.forEach(ticket => {
+            const isClosed = ticket.status === 'Closed' || ticket.status === 'Canceled';
+            const statusClass = isClosed ? 'status-closed' : 'status-open';
+            const itemClass = isClosed ? 'ticket-item inactive' : 'ticket-item';
+            
+            const dateObj = new Date(ticket.createdDate);
+            const formattedDate = isNaN(dateObj) ? "Unknown Date" : dateObj.toLocaleDateString();
+            
+            let closedNotation = "";
+            if (isClosed && ticket.closedDate) {
+                const closedDateObj = new Date(ticket.closedDate);
+                const formattedClosed = isNaN(closedDateObj) ? "Unknown Date" : closedDateObj.toLocaleDateString();
+                
+                // FIXED: Now defaults to the savedUser if closedBy is missing
+                const closerName = ticket.closedBy ? ticket.closedBy : savedUser;
+                
+                closedNotation = ` <span style="color: #aaaaaa; font-weight: 400;">&bull; Closed: ${formattedClosed} by ${closerName}</span>`;
+            }
+            
+            const ticketHTML = `
+                <a href="ticketdetail.html?id=${ticket.id}" class="ticket-link">
+                    <div class="${itemClass}">
+                        <div class="ticket-info">
+                            <span class="ticket-id">#${ticket.id} &bull; ${ticket.username || savedUser} &bull; ${formattedDate}${closedNotation}</span>
+                            <span class="ticket-title">${ticket.title}</span>
+                        </div>
+                        <span class="status-badge ${statusClass}">${ticket.status}</span>
+                    </div>
+                </a>
+            `;
+
+            if (isClosed) {
+                closedContainer.innerHTML += ticketHTML;
+            } else {
+                openContainer.innerHTML += ticketHTML;
+            }
+        });
+    </script>
+
+</body>
+</html>
