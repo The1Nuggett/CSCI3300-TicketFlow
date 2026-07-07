@@ -11,9 +11,11 @@ const technicianAccounts = {
     "technician2@company.com": { level: 2, label: "Level 2 Technician" },
     "technician3@company.com": { level: 3, label: "Level 3 Technician" }
 };
-const currentTechnician = localStorage.getItem("ticketflow_technician_id") || "technician1@company.com";
-const currentTechnicianName = localStorage.getItem("ticketflow_technician_name") || technicianAccounts[currentTechnician]?.label || currentTechnician;
-const currentTechnicianLevel = Number(localStorage.getItem("ticketflow_technician_level") || technicianAccounts[currentTechnician]?.level || 1);
+const pageParams = new URLSearchParams(window.location.search);
+const requestedTechnician = pageParams.get("technician");
+const currentTechnician = technicianAccounts[requestedTechnician] ? requestedTechnician : "technician1@company.com";
+const currentTechnicianName = pageParams.get("name") || technicianAccounts[currentTechnician]?.label || currentTechnician;
+const currentTechnicianLevel = technicianAccounts[currentTechnician]?.level || 1;
 
 let tickets = loadTickets();
 let selectedUserTicketId = tickets[0]?.id ?? null;
@@ -25,18 +27,7 @@ let selectedAdminTechnicianId = "technician1@company.com";
 let selectedAdminTicketId = tickets.find(ticket => ticket.assignedTechnician === selectedAdminTechnicianId)?.id ?? null;
 
 function loadTickets() {
-    try {
-        const savedTickets = JSON.parse(localStorage.getItem("tickets")) || [];
-        return savedTickets.map(ticket => {
-            if (ticket.status === "In Progress") ticket.status = "Open";
-            if (ticket.status === "Resolved") ticket.status = "Closed";
-            normalizeTicketRouting(ticket);
-            return ticket;
-        });
-    } catch (error) {
-        console.error("Could not load saved tickets.", error);
-        return [];
-    }
+    return [];
 }
 
 function isActiveTicket(ticket) {
@@ -107,7 +98,7 @@ function generateTicketId() {
 }
 
 function saveTickets() {
-    localStorage.setItem("tickets", JSON.stringify(tickets));
+    // Database hook: replace this with an API call when backend storage is added.
 }
 
 function updateTechnicianPageCopy() {
@@ -718,7 +709,13 @@ if (ticketForm) {
         displayTickets();
         ticketForm.reset();
         const redirectTarget = document.body.dataset.afterSubmit;
-        if (redirectTarget) window.location.href = redirectTarget;
+        if (redirectTarget) {
+            const params = new URLSearchParams({
+                name: ticket.requesterName,
+                email: ticket.requesterEmail
+            });
+            window.location.href = `${redirectTarget}?${params.toString()}`;
+        }
     });
 }
 

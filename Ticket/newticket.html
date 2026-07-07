@@ -8,7 +8,7 @@
     <script src="theme.js" defer></script>
 </head>
 <body class="portal-page" data-after-submit="portal.html">
-    <a href="portal.html" class="dashboard-back-arrow" aria-label="Back to ticket dashboard">←</a>
+    <a id="backArrowLink" href="portal.html" class="dashboard-back-arrow" aria-label="Back to ticket dashboard">←</a>
     <main class="dashboard-wrapper">
         <div class="logo-container">
             <img src="TicketFlow.png" alt="TicketFlow Banner" class="top-logo">
@@ -74,7 +74,7 @@
                 </div>
 
                 <button type="submit" class="submit-btn">Submit Ticket</button>
-                <a href="portal.html" class="subtle-link">Back to portal</a>
+                <a id="backPortalLink" href="portal.html" class="subtle-link">Back to portal</a>
             </form>
         </section>
     </main>
@@ -82,8 +82,18 @@
     <script src="Ticket.js"></script>
     <script src="Create.js"></script>
     <script>
-        document.getElementById("requesterName").value = localStorage.getItem("ticketflow_user") || "";
-        document.getElementById("requesterEmail").value = localStorage.getItem("ticketflow_email") || "";
+        const params = new URLSearchParams(window.location.search);
+        document.getElementById("requesterName").value = params.get("name") || "";
+        document.getElementById("requesterEmail").value = params.get("email") || "";
+        const portalParams = new URLSearchParams();
+
+        if (params.get("name")) portalParams.set("name", params.get("name"));
+        if (params.get("email")) portalParams.set("email", params.get("email"));
+
+        if (portalParams.toString()) {
+            document.getElementById("backArrowLink").href = `portal.html?${portalParams.toString()}`;
+            document.getElementById("backPortalLink").href = `portal.html?${portalParams.toString()}`;
+        }
 
         const priorityDropdown = document.getElementById("priority");
         const priorityExample = document.getElementById("priority-example");

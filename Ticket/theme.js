@@ -1,16 +1,8 @@
 (function () {
-    const STORAGE_KEY = "ticketflow_theme";
     const root = document.documentElement;
-
-    function getSavedTheme() {
-        const savedTheme = localStorage.getItem(STORAGE_KEY);
-        if (savedTheme === "light" || savedTheme === "dark") return savedTheme;
-        return "light";
-    }
 
     function applyTheme(theme) {
         root.dataset.theme = theme;
-        localStorage.setItem(STORAGE_KEY, theme);
 
         const toggleButton = document.querySelector("[data-theme-toggle]");
         if (toggleButton) {
@@ -42,10 +34,10 @@
             applyTheme(root.dataset.theme === "dark" ? "light" : "dark");
         });
         document.body.appendChild(toggleButton);
-        applyTheme(root.dataset.theme || getSavedTheme());
+        applyTheme(root.dataset.theme || "light");
     }
 
-    applyTheme(getSavedTheme());
+    applyTheme("light");
 
     if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", createToggle);

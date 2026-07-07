@@ -28,19 +28,28 @@
         </section>
 
         <div class="action-container">
-            <a href="newticket.html" class="submit-btn">Create New Ticket</a>
+            <a id="createTicketLink" href="newticket.html" class="submit-btn">Create New Ticket</a>
             <a href="index.html" class="subtle-link">Switch portal</a>
         </div>
     </main>
 
     <script>
-        const savedUser = localStorage.getItem("ticketflow_user") || "User";
-        const savedEmail = localStorage.getItem("ticketflow_email") || "";
+        const params = new URLSearchParams(window.location.search);
+        const savedUser = params.get("name") || "User";
+        const savedEmail = params.get("email") || "";
         document.getElementById("logged-in-user").textContent = savedEmail || savedUser;
+        const createTicketLink = document.getElementById("createTicketLink");
+
+        if (savedEmail) {
+            createTicketLink.href = `newticket.html?${new URLSearchParams({
+                name: savedUser,
+                email: savedEmail
+            }).toString()}`;
+        }
 
         const openContainer = document.getElementById("open-tickets-list");
         const closedContainer = document.getElementById("closed-tickets-list");
-        const tickets = JSON.parse(localStorage.getItem("tickets")) || [];
+        const tickets = [];
         const userTickets = tickets.filter(ticket => {
             if (savedEmail && ticket.requesterEmail) return ticket.requesterEmail.toLowerCase() === savedEmail.toLowerCase();
             return ticket.requesterName === savedUser || ticket.username === savedUser;

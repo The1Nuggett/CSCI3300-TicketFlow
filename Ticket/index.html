@@ -72,15 +72,12 @@
             event.preventDefault();
             clearLoginError();
             const { name, email, password } = getLoginValues();
-            localStorage.setItem("ticketflow_user", name || "User");
-            localStorage.setItem("ticketflow_email", email);
 
             if (name.toLowerCase() === "admin") {
                 if (password !== "admin") {
                     showLoginError("Admin login requires username admin and password admin.");
                     return;
                 }
-                localStorage.setItem("ticketflow_role", "admin");
                 window.location.href = "admin.html";
                 return;
             }
@@ -91,12 +88,11 @@
                     showLoginError("Technician login requires password 1234.");
                     return;
                 }
-                localStorage.setItem("ticketflow_role", "technician");
-                localStorage.setItem("ticketflow_technician_id", account.id);
-                localStorage.setItem("ticketflow_technician_name", name || account.label);
-                localStorage.setItem("ticketflow_technician_level", String(account.level));
-                localStorage.setItem("ticketflow_technician_label", account.label);
-                window.location.href = "technician.html";
+                const params = new URLSearchParams({
+                    technician: account.id,
+                    name: name || account.label
+                });
+                window.location.href = `technician.html?${params.toString()}`;
                 return;
             }
 
@@ -105,10 +101,11 @@
                 return;
             }
 
-            localStorage.setItem("ticketflow_role", "user");
-            localStorage.setItem("ticketflow_user", name || "User");
-            localStorage.setItem("ticketflow_email", userAccountEmail);
-            window.location.href = "portal.html";
+            const params = new URLSearchParams({
+                name: name || "User",
+                email: userAccountEmail
+            });
+            window.location.href = `portal.html?${params.toString()}`;
         });
     </script>
 </body>

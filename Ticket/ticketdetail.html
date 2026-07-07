@@ -20,7 +20,7 @@
     <script>
         const params = new URLSearchParams(window.location.search);
         const ticketId = Number(params.get("id"));
-        const tickets = JSON.parse(localStorage.getItem("tickets")) || [];
+        const tickets = [];
         const ticket = tickets.find(item => Number(item.id) === ticketId);
         const detailBox = document.getElementById("ticketDetailBox");
 
@@ -148,7 +148,7 @@
                         date: new Date().toISOString(),
                         message: "Ticket canceled by user."
                     });
-                    localStorage.setItem("tickets", JSON.stringify(tickets));
+                    // Database hook: replace this with an API call when backend storage is added.
                     window.location.href = "portal.html";
                 });
             }
