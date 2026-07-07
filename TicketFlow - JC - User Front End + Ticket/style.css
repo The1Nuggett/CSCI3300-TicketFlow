@@ -1,0 +1,93 @@
+/* Reset basic styles for consistency */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Centers the entire wrapper mid-screen */
+body, html {
+    height: 100%;
+    background-color: #f4f7f6;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+}
+
+/* Wrapper to hold the logo and the box together in a column */
+.login-wrapper {
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+}
+
+/* Shrunk Logo Container */
+.logo-container {
+    margin-bottom: 20px; /* Creates the space between the logo and the box */
+}
+
+.logo-container img {
+    width: 400px; /* Shrinks the logo down */
+    height: auto;
+    display: block;
+}
+
+/* The main white card containing the form requirements */
+.login-box {
+    background-color: #ffffff;
+    padding: 40px 50px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    width: 100%;
+}
+
+/* Grouping the label and input together */
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555555;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #0066cc;
+}
+
+/* The Sign In button */
+.login-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #000000; /* Changed to black */
+    color: #FFD700; /* Changed to gold */
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+/* The hover effect when the mouse goes over the button */
+.login-btn:hover {
+    background-color: #999999; /* Changes to dark grey when hovered */
+}

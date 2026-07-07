@@ -1,0 +1,111 @@
+/* Reset basic styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body, html {
+    min-height: 100vh;
+    background-color: #f4f7f6;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Centering the Wrapper (Logo + Form) */
+.dashboard-wrapper {
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column; /* Stacks the logo and the box vertically */
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Logo Spacing & Sizing */
+.logo-container {
+    margin-bottom: 25px; /* Creates space between the logo and the form box */
+}
+
+.top-logo {
+    width: 500px;
+    max-width: 100%; /* Ensures it shrinks on smaller screens so it doesn't break the layout */
+    height: auto;
+    display: block;
+}
+
+/* The Form Box */
+.form-box {
+    background-color: #ffffff;
+    padding: 40px 50px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 500px; 
+}
+
+/* Input Styles */
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #555555;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.input-group input, 
+.input-group textarea, 
+.input-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+    background-color: #ffffff;
+}
+
+.input-group textarea {
+    resize: vertical;
+}
+
+.input-group input:focus, 
+.input-group textarea:focus, 
+.input-group select:focus {
+    outline: none;
+    border-color: #0066cc;
+}
+
+/* Example Text under Priority */
+.example-text {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666666;
+    font-style: italic;
+    min-height: 18px; 
+}
+
+/* The Submit button */
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #000000; 
+    color: #FFD700; 
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 15px;
+}
+
+.submit-btn:hover {
+    background-color: #999999;
+}
