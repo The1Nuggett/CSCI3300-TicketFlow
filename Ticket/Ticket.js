@@ -46,17 +46,11 @@ class Ticket {
 
         let score = priorityScores[this.priority] || 3;
         const department = String(this.department || "").toLowerCase();
-        const category = String(this.category || "").toLowerCase();
         const description = String(this.description || "").toLowerCase();
-        const isDistributionOrDc = department.includes("distribution")
-            || department.includes("dc")
-            || category.includes("distribution")
-            || category.includes("dc")
-            || description.includes("distribution center");
         const isFloorOperations = department.includes("floor")
             || description.includes("floor operation");
 
-        if (isDistributionOrDc && isFloorOperations) score -= 0.5;
+        if (isFloorOperations) score -= 0.5;
         return Math.max(1, score);
     }
 

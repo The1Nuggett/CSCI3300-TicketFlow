@@ -27,7 +27,14 @@ let selectedAdminTechnicianId = "technician1@company.com";
 let selectedAdminTicketId = tickets.find(ticket => ticket.assignedTechnician === selectedAdminTechnicianId)?.id ?? null;
 
 function loadTickets() {
-    return [];
+    try {
+        const savedTickets = JSON.parse(localStorage.getItem("tickets")) || [];
+        savedTickets.forEach(normalizeTicketRouting);
+        return savedTickets;
+    } catch (error) {
+        console.error("Unable to load saved tickets.", error);
+        return [];
+    }
 }
 
 function isActiveTicket(ticket) {
@@ -44,17 +51,11 @@ function getPriorityScore(ticket) {
 
     let score = priorityScores[ticket.priority] || 3;
     const department = String(ticket.department || "").toLowerCase();
-    const category = String(ticket.category || "").toLowerCase();
     const description = String(ticket.description || "").toLowerCase();
-    const isDistributionOrDc = department.includes("distribution")
-        || department.includes("dc")
-        || category.includes("distribution")
-        || category.includes("dc")
-        || description.includes("distribution center");
     const isFloorOperations = department.includes("floor")
         || description.includes("floor operation");
 
-    if (isDistributionOrDc && isFloorOperations) score -= 0.5;
+    if (isFloorOperations) score -= 0.5;
     return Math.max(1, score);
 }
 
@@ -98,7 +99,7 @@ function generateTicketId() {
 }
 
 function saveTickets() {
-    // Database hook: replace this with an API call when backend storage is added.
+    localStorage.setItem("tickets", JSON.stringify(tickets));
 }
 
 function updateTechnicianPageCopy() {

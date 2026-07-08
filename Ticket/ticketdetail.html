@@ -8,7 +8,7 @@
     <script src="theme.js" defer></script>
 </head>
 <body class="portal-page">
-    <a href="portal.html" class="dashboard-back-arrow" aria-label="Back to ticket dashboard">←</a>
+    <a id="backArrowLink" href="portal.html" class="dashboard-back-arrow" aria-label="Back to ticket dashboard">←</a>
     <main class="dashboard-wrapper">
         <div class="logo-container">
             <img src="TicketFlow.png" alt="TicketFlow Banner" class="top-logo">
@@ -20,7 +20,30 @@
     <script>
         const params = new URLSearchParams(window.location.search);
         const ticketId = Number(params.get("id"));
-        const tickets = [];
+        const savedUser = params.get("name") || "";
+        const savedEmail = params.get("email") || "";
+        const portalParams = new URLSearchParams();
+
+        if (savedUser) portalParams.set("name", savedUser);
+        if (savedEmail) portalParams.set("email", savedEmail);
+
+        const portalUrl = portalParams.toString() ? `portal.html?${portalParams.toString()}` : "portal.html";
+        document.getElementById("backArrowLink").href = portalUrl;
+
+        function loadSavedTickets() {
+            try {
+                return JSON.parse(localStorage.getItem("tickets")) || [];
+            } catch (error) {
+                console.error("Unable to load saved tickets.", error);
+                return [];
+            }
+        }
+
+        function saveTickets() {
+            localStorage.setItem("tickets", JSON.stringify(tickets));
+        }
+
+        const tickets = loadSavedTickets();
         const ticket = tickets.find(item => Number(item.id) === ticketId);
         const detailBox = document.getElementById("ticketDetailBox");
 
@@ -67,7 +90,7 @@
             detailBox.innerHTML = `
                 <h1>Ticket not found</h1>
                 <p class="auth-description">This ticket may have been removed or the link may be incorrect.</p>
-                <a href="portal.html" class="submit-btn">Back to Portal</a>
+                <a href="${portalUrl}" class="submit-btn">Back to Portal</a>
             `;
         } else {
             const isClosed = ticket.status === "Closed" || ticket.status === "Canceled";
@@ -133,7 +156,7 @@
                 <ul class="activity-list">${renderActivity(ticket.activityLog)}</ul>
 
                 <div class="btn-group">
-                    <a href="portal.html" class="submit-btn btn-back">Back to Portal</a>
+                    <a href="${portalUrl}" class="submit-btn btn-back">Back to Portal</a>
                     ${isClosed ? "" : '<button id="cancelTicketBtn" class="submit-btn btn-close">Cancel Ticket</button>'}
                 </div>
             `;
@@ -148,8 +171,8 @@
                         date: new Date().toISOString(),
                         message: "Ticket canceled by user."
                     });
-                    // Database hook: replace this with an API call when backend storage is added.
-                    window.location.href = "portal.html";
+                    saveTickets();
+                    window.location.href = portalUrl;
                 });
             }
         }

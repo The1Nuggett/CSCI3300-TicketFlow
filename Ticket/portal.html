@@ -49,7 +49,16 @@
 
         const openContainer = document.getElementById("open-tickets-list");
         const closedContainer = document.getElementById("closed-tickets-list");
-        const tickets = [];
+        function loadSavedTickets() {
+            try {
+                return JSON.parse(localStorage.getItem("tickets")) || [];
+            } catch (error) {
+                console.error("Unable to load saved tickets.", error);
+                return [];
+            }
+        }
+
+        const tickets = loadSavedTickets();
         const userTickets = tickets.filter(ticket => {
             if (savedEmail && ticket.requesterEmail) return ticket.requesterEmail.toLowerCase() === savedEmail.toLowerCase();
             return ticket.requesterName === savedUser || ticket.username === savedUser;
@@ -75,7 +84,11 @@
                 : "";
 
             return `
-                <a href="ticketdetail.html?id=${ticket.id}" class="ticket-link">
+                <a href="ticketdetail.html?${new URLSearchParams({
+                    id: ticket.id,
+                    name: savedUser,
+                    email: savedEmail
+                }).toString()}" class="ticket-link">
                     <div class="${itemClass}">
                         <div class="ticket-info">
                             <span class="ticket-id">#${ticket.id} &bull; ${formatDate(ticket.createdDate)}${closedText}</span>
