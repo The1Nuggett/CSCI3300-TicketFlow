@@ -3,7 +3,7 @@
 ## Description
 TicketFlow is a streamlined, priority-based ticketing management system designed to optimize internal IT support workflows. By automating the routing of technical support requests based on category and department, TicketFlow minimizes resolution time and ensures critical infrastructure issues—such as data center operations—are escalated immediately.
 
-[▶️ **Watch the TicketFlow Demo Video**](https://drive.google.com/file/d/1E7cGbRrczQZsQfjPmg3pypjBJA0h2JXs/view)
+[▶️ **Watch the TicketFlow Demo Video**](https://drive.google.com/file/d/1TlLckfVxg5mLLvi8KIUNEs7NLUXOgzpH/view)
 
 ## Motivation
 To automate priority-based ticketing for internal IT support, reducing manual administrative overhead and ensuring high-priority requests are handled by the appropriate technical level.
@@ -97,6 +97,6 @@ This project is licensed under the MIT License. This is a common open-source lic
 * **Ethan Nooner:** Developed the base Java logic for ticketing and authentication.
 * **Joanne Candia:** Designed the HTML/CSS prototype for portals and the login screen; created the TicketFlow logo.
 * **Tailand Pryce:** Implemented the back-end Java routing logic and Admin control capabilities.
-* **Alexander Fernandez:** Engineered the user login credentials and integrated technician-level logic; transitioned priority handling to a technician-based model.
+* **Alexander Fernandez:** Engineered the user login credentials and integrated technician-level logic; transitioned priority handling to a technician-based model; created demo video
 * **All:** Participated in the iterative review process, feature brainstorming, and consensus-based decision-making. Group #5 operated collaboratively with equal contribution from all members. (This README file has been approved by all members.)
 
