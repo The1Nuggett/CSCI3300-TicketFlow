@@ -81,7 +81,8 @@ TicketFlow is a working prototype developed for the CSCI3300 Summer 2026 course.
 
 ## Contributing
 * **Guidelines:** The project is built using Java, CSS, JavaScript, and HTML. Please maintain consistent coding standards when suggesting improvements.
-* **Contact:** * jlcand1787@ung.edu 
+* **Contact:**
+    * jlcand1787@ung.edu 
     * eanoon7612@ung.edu 
     * aifern2399@ung.edu 
     * tdpryc0420@ung.edu
