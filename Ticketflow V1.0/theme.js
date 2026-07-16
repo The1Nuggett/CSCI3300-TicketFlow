@@ -1,3 +1,4 @@
+//Our fun little dark mode toggle
 (function () {
     const root = document.documentElement;
 

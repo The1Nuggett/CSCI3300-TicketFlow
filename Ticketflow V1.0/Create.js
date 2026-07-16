@@ -26,6 +26,7 @@ let selectedAdminClosedTicketId = tickets.find(ticket => !isActiveTicket(ticket)
 let selectedAdminTechnicianId = "technician1@company.com";
 let selectedAdminTicketId = tickets.find(ticket => ticket.assignedTechnician === selectedAdminTechnicianId)?.id ?? null;
 
+// 
 function loadTickets() {
     try {
         const savedTickets = JSON.parse(localStorage.getItem("tickets")) || [];

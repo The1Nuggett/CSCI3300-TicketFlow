@@ -160,7 +160,7 @@
                     ${isClosed ? "" : '<button id="cancelTicketBtn" class="submit-btn btn-close">Cancel Ticket</button>'}
                 </div>
             `;
-
+            //user has ability to cancel ticket if issues resolves itself
             const cancelButton = document.getElementById("cancelTicketBtn");
             if (cancelButton) {
                 cancelButton.addEventListener("click", () => {
